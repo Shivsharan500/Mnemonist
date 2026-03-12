@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Be a Mnemonist – Literary & Debate Club</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8cc7a;
+    --gold-dark: #8b6914;
+    --ink: #0e0b07;
+    --parchment: #f5edd8;
+    --parchment-dark: #e8d9b8;
+    --crimson: #8b1a1a;
+    --green: #4caf80;
+    --blue: #7ec8e3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: #0e0b07;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(139,105,20,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(139,26,26,0.06) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9a84c' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    font-family: 'EB Garamond', serif;
+    color: var(--parchment);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .corner-ornament { position: fixed; width: 80px; height: 80px; opacity: 0.22; z-index: 0; pointer-events: none; }
+  .corner-ornament svg { width: 100%; height: 100%; }
+  .corner-ornament.tl { top: 10px; left: 10px; }
+  .corner-ornament.tr { top: 10px; right: 10px; transform: scaleX(-1); }
+  .corner-ornament.bl { bottom: 10px; left: 10px; transform: scaleY(-1); }
+  .corner-ornament.br { bottom: 10px; right: 10px; transform: scale(-1); }
+
+  .screen { display: none; min-height: 100vh; width: 100%; align-items: center; justify-content: center; flex-direction: column; padding: 40px 20px; position: relative; z-index: 1; animation: fadeIn 0.55s ease; }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  .masthead { text-align: center; margin-bottom: 32px; }
+  .masthead .club-tag { font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 0.35em; color: var(--gold); text-transform: uppercase; opacity: 0.8; margin-bottom: 8px; }
+  .masthead h1 { font-family: 'Cinzel', serif; font-size: clamp(1.5rem, 4vw, 2.8rem); font-weight: 900; color: var(--gold-light); text-shadow: 0 0 40px rgba(201,168,76,0.3), 0 2px 4px rgba(0,0,0,0.8); line-height: 1.2; }
+  .masthead h1 em { font-style: italic; color: var(--gold); }
+  .masthead .divider { margin: 12px auto; display: flex; align-items: center; gap: 12px; justify-content: center; opacity: 0.45; }
+  .masthead .divider span { flex: 1; max-width: 120px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold)); }
+  .masthead .divider span:last-child { background: linear-gradient(270deg, transparent, var(--gold)); }
+  .masthead .subtitle { font-size: 1rem; font-style: italic; color: var(--parchment-dark); opacity: 0.65; }
+
+  .card { background: linear-gradient(160deg, rgba(30,24,14,0.95), rgba(18,14,8,0.98)); border: 1px solid rgba(201,168,76,0.25); border-radius: 4px; box-shadow: 0 8px 60px rgba(0,0,0,0.7), inset 0 1px 0 rgba(201,168,76,0.1); padding: 36px 44px; max-width: 480px; width: 100%; position: relative; }
+  .card::before { content: ''; position: absolute; inset: 6px; border: 1px solid rgba(201,168,76,0.07); border-radius: 2px; pointer-events: none; }
+  .card h2 { font-family: 'Cinzel', serif; font-size: 1.05rem; color: var(--gold); letter-spacing: 0.15em; text-align: center; margin-bottom: 24px; }
+
+  /* RULES */
+  .rules-card { max-width: 560px; }
+  .rules-list { list-style: none; display: flex; flex-direction: column; gap: 0; }
+  .rules-list li { display: flex; gap: 14px; align-items: flex-start; font-family: 'EB Garamond', serif; font-size: 1.05rem; color: var(--parchment-dark); line-height: 1.55; padding: 13px 0; border-bottom: 1px solid rgba(201,168,76,0.08); animation: ruleSlide 0.5s ease both; }
+  .rules-list li:last-child { border-bottom: none; }
+  .rules-list li:nth-child(1){animation-delay:0.05s} .rules-list li:nth-child(2){animation-delay:0.1s} .rules-list li:nth-child(3){animation-delay:0.15s} .rules-list li:nth-child(4){animation-delay:0.2s} .rules-list li:nth-child(5){animation-delay:0.25s} .rules-list li:nth-child(6){animation-delay:0.3s}
+  @keyframes ruleSlide { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+  .rule-num { font-family: 'Cinzel', serif; font-size: 0.72rem; color: var(--gold); opacity: 0.7; min-width: 22px; padding-top: 3px; letter-spacing: 0.05em; }
+  .rule-text strong { font-family: 'Cinzel', serif; font-size: 0.76rem; letter-spacing: 0.1em; color: var(--gold-light); display: block; margin-bottom: 2px; }
+
+  /* FORM */
+  .form-group { margin-bottom: 20px; }
+  .form-group label { display: block; font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.25em; color: var(--gold); opacity: 0.7; margin-bottom: 7px; text-transform: uppercase; }
+  .form-group input { width: 100%; background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 2px; color: var(--parchment); font-family: 'EB Garamond', serif; font-size: 1.1rem; padding: 12px 16px; outline: none; transition: border-color 0.3s, box-shadow 0.3s; }
+  .form-group input:focus { border-color: rgba(201,168,76,0.6); box-shadow: 0 0 0 3px rgba(201,168,76,0.08); }
+  .form-group input::placeholder { color: rgba(245,237,216,0.25); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Cinzel', serif; font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; }
+  .btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.07) 0%, transparent 100%); pointer-events: none; }
+  .btn-gold { background: linear-gradient(160deg, var(--gold-light), var(--gold), var(--gold-dark)); color: var(--ink); padding: 14px 32px; box-shadow: 0 4px 20px rgba(201,168,76,0.35); }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(201,168,76,0.5); }
+  .btn-gold:active { transform: translateY(0); }
+  .btn-outline { background: transparent; border: 1px solid rgba(201,168,76,0.4); color: var(--gold); padding: 12px 28px; }
+  .btn-outline:hover { background: rgba(201,168,76,0.08); border-color: var(--gold); }
+  .btn-full { width: 100%; }
+  .btn-group { display: flex; flex-direction: column; gap: 12px; align-items: center; margin-top: 26px; }
+
+  /* TIMER */
+  .timer-wrap { text-align: center; margin-bottom: 22px; }
+  .timer-label { font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.3em; color: var(--gold); opacity: 0.6; margin-bottom: 6px; }
+  .timer-display { font-family: 'Cinzel', serif; font-size: 3rem; font-weight: 900; color: var(--gold-light); text-shadow: 0 0 30px rgba(201,168,76,0.5); line-height: 1; transition: color 0.3s; }
+  .timer-display.urgent { color: var(--crimson); text-shadow: 0 0 30px rgba(139,26,26,0.6); animation: timerPulse 0.5s ease infinite alternate; }
+  @keyframes timerPulse { from { opacity: 1; } to { opacity: 0.55; } }
+  .timer-bar { height: 3px; background: rgba(201,168,76,0.15); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+  .timer-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 2px; transition: width 1s linear; }
+  .timer-fill.urgent { background: linear-gradient(90deg, var(--crimson), #e05555); }
+
+  /* PREP SCREEN */
+  .prep-big { font-family: 'Cinzel', serif; font-size: 8rem; font-weight: 900; color: var(--blue); text-shadow: 0 0 60px rgba(126,200,227,0.45); line-height: 1; }
+  .prep-anim { animation: prepPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes prepPop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .prep-message { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.35rem; color: var(--parchment-dark); opacity: 0.65; margin-top: 14px; text-align: center; }
+  .prep-sub { font-family: 'EB Garamond', serif; font-size: 0.9rem; color: var(--gold); opacity: 0.5; margin-top: 8px; letter-spacing: 0.18em; text-align: center; font-style: italic; }
+  .prep-bar { width: 220px; height: 3px; background: rgba(126,200,227,0.15); border-radius: 2px; margin-top: 28px; overflow: hidden; }
+  .prep-bar-fill { height: 100%; background: linear-gradient(90deg, #5ba8c4, var(--blue)); border-radius: 2px; transition: width 1s linear; }
+
+  /* INSTRUCTION */
+  .instruction-banner { font-family: 'EB Garamond', serif; font-style: italic; font-size: 1.05rem; color: var(--parchment-dark); text-align: center; margin-bottom: 22px; opacity: 0.72; max-width: 600px; }
+  .phase-title { font-family: 'Cinzel', serif; font-size: 0.72rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); opacity: 0.55; text-align: center; margin-bottom: 5px; }
+
+  /* GAME LAYOUT */
+  .game-layout { display: flex; gap: 32px; align-items: flex-start; justify-content: center; width: 100%; max-width: 900px; flex-wrap: wrap; }
+
+  /* MATRIX */
+  .matrix-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: min(420px, 90vw); }
+  .matrix-cell { aspect-ratio: 1; background: rgba(30,24,14,0.7); border: 1px solid rgba(201,168,76,0.18); border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: default; transition: all 0.2s; position: relative; overflow: hidden; min-height: 82px; }
+  .matrix-cell::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 0%, rgba(201,168,76,0.04), transparent 70%); pointer-events: none; }
+  .matrix-cell .cell-num { position: absolute; top: 5px; left: 7px; font-family: 'Cinzel', serif; font-size: 8px; color: rgba(201,168,76,0.22); }
+  .matrix-cell .cell-icon { font-size: 1.8rem; line-height: 1; margin-bottom: 2px; }
+  .matrix-cell .cell-name { font-family: 'EB Garamond', serif; font-size: 0.68rem; color: var(--parchment-dark); opacity: 0.85; text-align: center; line-height: 1.2; padding: 0 3px; }
+  .matrix-cell.has-item { background: rgba(40,32,16,0.9); border-color: rgba(201,168,76,0.35); box-shadow: inset 0 0 20px rgba(201,168,76,0.06); animation: itemAppear 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes itemAppear { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .matrix-cell.target-cell { cursor: pointer; border-color: rgba(201,168,76,0.35); background: rgba(38,30,14,0.65); animation: cellPulse 2s ease infinite; }
+  @keyframes cellPulse { 0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.12);} 50%{box-shadow:0 0 0 5px rgba(201,168,76,0);} }
+  .matrix-cell.target-cell:hover { background: rgba(70,55,22,0.8); border-color: var(--gold); transform: scale(1.04); }
+  .matrix-cell.correct-place { border-color: var(--green); background: rgba(30,70,45,0.6); box-shadow: inset 0 0 20px rgba(76,175,128,0.1); }
+  .matrix-cell.wrong-place   { border-color: var(--crimson); background: rgba(70,20,20,0.6); }
+
+  /* SIDEBAR */
+  .sidebar { flex: 0 0 178px; }
+  .sidebar-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.3em; color: var(--gold); opacity: 0.5; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
+  .items-list { display: flex; flex-direction: column; gap: 6px; }
+  .item-chip { display: flex; align-items: center; gap: 8px; padding: 7px 11px; background: rgba(30,24,14,0.7); border: 1px solid rgba(201,168,76,0.18); border-radius: 3px; cursor: pointer; transition: all 0.18s; position: relative; overflow: hidden; }
+  .item-chip::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--gold); transform: scaleY(0); transition: transform 0.2s; }
+  .item-chip:hover { background: rgba(50,40,18,0.8); border-color: rgba(201,168,76,0.4); }
+  .item-chip.selected { background: rgba(70,55,22,0.9); border-color: var(--gold); box-shadow: 0 0 12px rgba(201,168,76,0.2); }
+  .item-chip.selected::before { transform: scaleY(1); }
+  .item-chip.placed { opacity: 0.26; pointer-events: none; }
+  .item-chip .chip-icon { font-size: 1.2rem; }
+  .item-chip .chip-name { font-family: 'EB Garamond', serif; font-size: 0.88rem; color: var(--parchment-dark); }
+
+  /* SCORE */
+  .score-section { text-align: center; max-width: 560px; width: 100%; }
+  .score-big { font-family: 'Cinzel', serif; font-size: 5rem; font-weight: 900; color: var(--gold-light); text-shadow: 0 0 60px rgba(201,168,76,0.4); line-height: 1; animation: scoreReveal 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes scoreReveal { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .score-outof   { font-family: 'EB Garamond', serif; font-size: 1.1rem; color: var(--parchment-dark); opacity: 0.5; margin-top: 4px; }
+  .score-message { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.25rem; color: var(--gold); margin: 16px 0 6px; }
+  .score-player  { font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.2em; color: var(--parchment-dark); opacity: 0.5; }
+
+  /* LEADERBOARD */
+  .leaderboard-wrap { max-width: 560px; width: 100%; }
+  .lb-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .lb-table thead tr { border-bottom: 1px solid rgba(201,168,76,0.22); }
+  .lb-table th { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.25em; color: var(--gold); opacity: 0.5; text-transform: uppercase; padding: 7px 12px; text-align: left; }
+  .lb-table tbody tr { border-bottom: 1px solid rgba(201,168,76,0.06); transition: background 0.15s; animation: rowSlide 0.4s ease both; }
+  .lb-table tbody tr:hover { background: rgba(201,168,76,0.04); }
+  @keyframes rowSlide { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+  .lb-table tbody tr:nth-child(1){animation-delay:0.05s} .lb-table tbody tr:nth-child(2){animation-delay:0.1s} .lb-table tbody tr:nth-child(3){animation-delay:0.15s} .lb-table tbody tr:nth-child(4){animation-delay:0.2s} .lb-table tbody tr:nth-child(5){animation-delay:0.25s}
+  .lb-table td { font-family: 'EB Garamond', serif; font-size: 1rem; color: var(--parchment-dark); padding: 9px 12px; }
+  .lb-rank { font-family: 'Cinzel', serif; font-size: 0.78rem; color: var(--gold); font-weight: 600; width: 38px; }
+  .lb-rank.gold-medal{color:#ffd700} .lb-rank.silver-medal{color:#c0c0c0} .lb-rank.bronze-medal{color:#cd7f32}
+  .lb-score-td { font-family: 'Cinzel', serif; font-weight: 600; color: var(--gold-light); text-align: right; }
+
+  #toast { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(30,24,14,0.96); border: 1px solid rgba(201,168,76,0.35); color: var(--parchment); font-family: 'EB Garamond', serif; font-style: italic; font-size: 1rem; padding: 11px 26px; border-radius: 2px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s, transform 0.3s; z-index: 1000; white-space: nowrap; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+  .confetti-piece { position: absolute; top: -10px; animation: confettiFall linear both; }
+  @keyframes confettiFall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+  .loading-dots { display: inline-flex; gap: 5px; }
+  .loading-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: dotBounce 1s ease infinite; }
+  .loading-dots span:nth-child(2){animation-delay:0.15s} .loading-dots span:nth-child(3){animation-delay:0.3s}
+  @keyframes dotBounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
+
+  .error-text { color: var(--crimson); font-size: 0.85rem; font-style: italic; text-align: center; margin-top: 8px; }
+  .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<div class="corner-ornament tl"><svg viewBox="0 0 80 80" fill="none"><path d="M4 4 L4 40 Q4 4 40 4 Z" stroke="#c9a84c" stroke-width="1.5" fill="none"/><path d="M4 4 L40 4" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><path d="M4 4 L4 40" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity="0.5"/><path d="M20 4 L4 20" stroke="#c9a84c" stroke-width="0.5" opacity="0.3"/><path d="M36 4 L4 36" stroke="#c9a84c" stroke-width="0.5" opacity="0.3"/></svg></div>
+<div class="corner-ornament tr"><svg viewBox="0 0 80 80" fill="none"><path d="M4 4 L4 40 Q4 4 40 4 Z" stroke="#c9a84c" stroke-width="1.5" fill="none"/><path d="M4 4 L40 4" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><path d="M4 4 L4 40" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity="0.5"/></svg></div>
+<div class="corner-ornament bl"><svg viewBox="0 0 80 80" fill="none"><path d="M4 4 L4 40 Q4 4 40 4 Z" stroke="#c9a84c" stroke-width="1.5" fill="none"/><path d="M4 4 L40 4" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><path d="M4 4 L4 40" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity="0.5"/></svg></div>
+<div class="corner-ornament br"><svg viewBox="0 0 80 80" fill="none"><path d="M4 4 L4 40 Q4 4 40 4 Z" stroke="#c9a84c" stroke-width="1.5" fill="none"/><path d="M4 4 L40 4" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><path d="M4 4 L4 40" stroke="#c9a84c" stroke-width="1" opacity="0.5"/><circle cx="4" cy="4" r="3" fill="#c9a84c" opacity="0.5"/></svg></div>
+
+<!-- ══ SCREEN 1: HOME ══ -->
+<div id="screen-home" class="screen active">
+  <div class="masthead">
+    <div class="club-tag">Literary &amp; Debate Club Presents</div>
+    <h1>Be a <em>Mnemonist!</em></h1>
+    <div class="divider"><span></span><svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 8.8,5.4 13.5,5.4 9.8,8.3 11.3,13 7,10.2 2.7,13 4.2,8.3 0.5,5.4 5.2,5.4" fill="#c9a84c" opacity="0.6"/></svg><span></span></div>
+    <div class="subtitle">A test of memory, wit &amp; recollection</div>
+  </div>
+  <div class="card">
+    <h2>Identify Yourself</h2>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="input-name" placeholder="e.g. Priya Sharma" autocomplete="off"/>
+    </div>
+    <div class="form-group">
+      <label>Roll Number</label>
+      <input type="text" id="input-roll" placeholder="e.g. 2024CS042" autocomplete="off"/>
+    </div>
+    <div id="home-error" class="error-text" style="display:none"></div>
+    <div class="btn-group">
+      <button class="btn btn-gold btn-full" onclick="proceedToRules()">✦ Proceed</button>
+      <button class="btn btn-outline" onclick="showLeaderboard()">◈ View Leaderboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: RULES ══ -->
+<div id="screen-rules" class="screen">
+  <div class="masthead" style="margin-bottom:22px;">
+    <div class="club-tag">Literary &amp; Debate Club · Mnemonist</div>
+    <h1>The <em>Rules</em></h1>
+    <div class="divider"><span></span><svg width="14" height="14" viewBox="0 0 14 14"><polygon points="7,1 8.8,5.4 13.5,5.4 9.8,8.3 11.3,13 7,10.2 2.7,13 4.2,8.3 0.5,5.4 5.2,5.4" fill="#c9a84c" opacity="0.6"/></svg><span></span></div>
+  </div>
+  <div class="card rules-card">
+    <h2>How to Play</h2>
+    <ul class="rules-list">
+      <li><span class="rule-num">I</span><span class="rule-text"><strong>The Grid</strong>A 4×4 matrix of 16 cells will appear. 8 randomly chosen cells will each hold a unique object.</span></li>
+      <li><span class="rule-num">II</span><span class="rule-text"><strong>Observation — 15 Seconds</strong>Study the grid carefully and memorise which object sits in which cell. The clock is ticking!</span></li>
+      <li><span class="rule-num">III</span><span class="rule-text"><strong>Preparation — 10 Seconds</strong>The grid vanishes. Use this time to mentally rehearse the positions before recall begins.</span></li>
+      <li><span class="rule-num">IV</span><span class="rule-text"><strong>Recall — 25 Seconds</strong>The 8 objects appear on the left. Select an object, then click the cell where you believe it belongs.</span></li>
+      <li><span class="rule-num">V</span><span class="rule-text"><strong>Scoring</strong>One point for each object placed in its correct cell. Maximum score: 8 points.</span></li>
+      <li><span class="rule-num">VI</span><span class="rule-text"><strong>Leaderboard</strong>Your score is recorded. Rise through the ranks and claim your place in the Hall of Memory!</span></li>
+    </ul>
+    <div class="btn-group">
+      <button class="btn btn-gold btn-full" onclick="startGame()">✦ Begin the Challenge</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: MEMORIZE ══ -->
+<div id="screen-memorize" class="screen">
+  <div class="masthead" style="margin-bottom:14px;">
+    <div class="club-tag">Literary &amp; Debate Club · Mnemonist</div>
+    <h1>Memorize <em>the Grid</em></h1>
+  </div>
+  <div class="phase-title">Phase I — Observation</div>
+  <div class="instruction-banner">Study the positions carefully. The matrix will vanish when time runs out.</div>
+  <div class="timer-wrap">
+    <div class="timer-label">Time Remaining</div>
+    <div class="timer-display" id="timer-memorize">15</div>
+    <div class="timer-bar"><div class="timer-fill" id="timer-fill-memorize" style="width:100%"></div></div>
+  </div>
+  <div class="matrix-grid" id="grid-memorize"></div>
+</div>
+
+<!-- ══ SCREEN 4: PREP COUNTDOWN ══ -->
+<div id="screen-prep" class="screen">
+  <div class="masthead" style="margin-bottom:16px;">
+    <div class="club-tag">Literary &amp; Debate Club · Mnemonist</div>
+    <h1>Get <em>Ready!</em></h1>
+  </div>
+  <div class="phase-title">Preparation Phase</div>
+  <div class="instruction-banner">The grid is gone. Recall begins shortly — rehearse the positions in your mind.</div>
+  <div id="prep-number" class="prep-big prep-anim">10</div>
+  <div class="prep-message">Recall begins in…</div>
+  <div class="prep-sub">✦ &nbsp; Steel your memory &nbsp; ✦</div>
+  <div class="prep-bar"><div class="prep-bar-fill" id="prep-bar-fill" style="width:100%"></div></div>
+</div>
+
+<!-- ══ SCREEN 5: RECALL ══ -->
+<div id="screen-recall" class="screen">
+  <div class="masthead" style="margin-bottom:12px;">
+    <div class="club-tag">Literary &amp; Debate Club · Mnemonist</div>
+    <h1>Place the <em>Items</em></h1>
+  </div>
+  <div class="phase-title">Phase II — Recall</div>
+  <div class="instruction-banner">Select an item from the left, then click the correct cell to place it.</div>
+  <div class="timer-wrap">
+    <div class="timer-label">Time Remaining</div>
+    <div class="timer-display" id="timer-recall">25</div>
+    <div class="timer-bar"><div class="timer-fill" id="timer-fill-recall" style="width:100%"></div></div>
+  </div>
+  <div class="game-layout">
+    <div class="sidebar">
+      <div class="sidebar-label">Items to Place</div>
+      <div class="items-list" id="items-list"></div>
+    </div>
+    <div><div class="matrix-grid" id="grid-recall"></div></div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 6: RESULT ══ -->
+<div id="screen-result" class="screen">
+  <div class="masthead" style="margin-bottom:16px;">
+    <div class="club-tag">Literary &amp; Debate Club · Mnemonist</div>
+    <h1>Your <em>Results</em></h1>
+  </div>
+  <div class="score-section">
+    <div class="score-big" id="result-score">0</div>
+    <div class="score-outof">out of 8</div>
+    <div class="score-message" id="result-message"></div>
+    <div class="score-player"  id="result-player"></div>
+    <div style="margin:22px 0;">
+      <div class="phase-title">Your Placements</div>
+      <div class="matrix-grid" id="grid-result" style="margin:10px auto 0; width:min(380px,90vw);"></div>
+    </div>
+    <div id="result-save-status" style="min-height:20px; text-align:center; font-style:italic; color:rgba(245,237,216,0.42); font-family:'EB Garamond',serif; font-size:0.9rem;"></div>
+    <div class="btn-group mt-16">
+      <button class="btn btn-gold" onclick="restartGame()">✦ Play Again</button>
+      <button class="btn btn-outline" onclick="showLeaderboard()">◈ Leaderboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 7: LEADERBOARD ══ -->
+<div id="screen-leaderboard" class="screen">
+  <div class="masthead" style="margin-bottom:16px;">
+    <div class="club-tag">Literary &amp; Debate Club · Mnemonist</div>
+    <h1>The <em>Hall of Memory</em></h1>
+  </div>
+  <div class="leaderboard-wrap">
+    <div class="card" style="max-width:100%; padding:24px 28px;">
+      <h2>Top 10 Mnemonists</h2>
+      <div id="lb-content"><div style="text-align:center;padding:20px 0;"><div class="loading-dots"><span></span><span></span><span></span></div></div></div>
+    </div>
+    <div class="btn-group mt-24">
+      <button class="btn btn-outline" onclick="goHome()">← Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div class="confetti-container" id="confetti-container"></div>
+
+<script>
+/* ═══════════ CONFIG ═══════════ */
+const API_BASE = window.location.origin;
+
+/* ═══════════ 30 SUBSTANCES ═══════════ */
+const ALL_SUBSTANCES = [
+  {name:'Apple',     icon:'🍎'},{name:'Banana',    icon:'🍌'},{name:'Table',     icon:'🪑'},
+  {name:'Pen',       icon:'🖊️'},{name:'Book',      icon:'📚'},{name:'Clock',     icon:'🕰️'},
+  {name:'Globe',     icon:'🌍'},{name:'Candle',    icon:'🕯️'},{name:'Feather',   icon:'🪶'},
+  {name:'Crown',     icon:'👑'},{name:'Compass',   icon:'🧭'},{name:'Lantern',   icon:'🏮'},
+  {name:'Scroll',    icon:'📜'},{name:'Hourglass', icon:'⏳'},{name:'Inkpot',    icon:'🫙'},
+  {name:'Quill',     icon:'✒️'},{name:'Crystal',   icon:'🔮'},{name:'Map',       icon:'🗺️'},
+  {name:'Anchor',    icon:'⚓'},{name:'Key',       icon:'🗝️'},{name:'Telescope', icon:'🔭'},
+  {name:'Microscope',icon:'🔬'},{name:'Scales',    icon:'⚖️'},{name:'Lamp',      icon:'🪔'},
+  {name:'Ribbon',    icon:'🎀'},{name:'Chess',     icon:'♟️'},{name:'Magnifier', icon:'🔍'},
+  {name:'Briefcase', icon:'💼'},{name:'Envelope',  icon:'✉️'},{name:'Notebook',  icon:'📓'},
+];
+
+/* ═══════════ STATE ═══════════ */
+let playerName = '', playerRoll = '';
+let chosenItems = [], chosenCells = [], correctMap = {}, playerPlacements = {};
+let selectedItem = null;
+let timerInterval = null, prepInterval = null;
+
+/* ═══════════ HELPERS ═══════════ */
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pick(arr, n) { return shuffle(arr).slice(0, n); }
+
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function toast(msg, ms=2400) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), ms);
+}
+
+function getMsg(s) {
+  if (s===8) return '✦ Perfect Memory! Legendary Mnemonist!';
+  if (s>=6)  return '◈ Excellent Recall!';
+  if (s>=4)  return '△ Good Effort!';
+  if (s>=2)  return '◇ Keep Practising!';
+  return '○ Better luck next time!';
+}
+
+/* ═══════════ GENERIC TIMER ═══════════ */
+function startTimer(secs, dispId, fillId, onEnd) {
+  clearInterval(timerInterval);
+  let rem = secs;
+  const disp = document.getElementById(dispId);
+  const fill = document.getElementById(fillId);
+  render();
+  timerInterval = setInterval(() => { rem--; render(); if (rem<=0){ clearInterval(timerInterval); onEnd(); } }, 1000);
+  function render() {
+    disp.textContent = rem;
+    fill.style.width = (rem/secs*100)+'%';
+    disp.classList.toggle('urgent', rem<=5);
+    fill.classList.toggle('urgent', rem<=5);
+  }
+}
+
+/* ═══════════ HOME → RULES ═══════════ */
+function proceedToRules() {
+  const name = document.getElementById('input-name').value.trim();
+  const roll = document.getElementById('input-roll').value.trim();
+  const err  = document.getElementById('home-error');
+  if (!name || !roll) { err.textContent='Please enter both your name and roll number.'; err.style.display='block'; return; }
+  err.style.display='none';
+  playerName = name; playerRoll = roll;
+  showScreen('screen-rules');
+}
+
+/* ═══════════ RULES → MEMORIZE ═══════════ */
+function startGame() {
+  setupRound();
+  showScreen('screen-memorize');
+  startTimer(15, 'timer-memorize', 'timer-fill-memorize', onMemorizeEnd);
+}
+
+/* ═══════════ SETUP ═══════════ */
+function setupRound() {
+  chosenItems = pick(ALL_SUBSTANCES, 8);
+  chosenCells = pick(Array.from({length:16},(_,i)=>i), 8);
+  correctMap  = {};
+  chosenCells.forEach((c,i) => { correctMap[c] = chosenItems[i]; });
+  playerPlacements = {};
+  selectedItem = null;
+  renderMemorizeGrid();
+}
+
+/* ═══════════ MEMORIZE GRID ═══════════ */
+function renderMemorizeGrid() {
+  const g = document.getElementById('grid-memorize');
+  g.innerHTML = '';
+  for (let i=0; i<16; i++) {
+    const c = document.createElement('div');
+    c.className = 'matrix-cell' + (correctMap[i]?' has-item':'');
+    c.innerHTML = `<span class="cell-num">${i+1}</span>`;
+    if (correctMap[i]) c.innerHTML += `<span class="cell-icon">${correctMap[i].icon}</span><span class="cell-name">${correctMap[i].name}</span>`;
+    g.appendChild(c);
+  }
+}
+
+/* ═══════════ MEMORIZE END → PREP ═══════════ */
+function onMemorizeEnd() {
+  clearInterval(timerInterval);
+  showScreen('screen-prep');
+  startPrepCountdown(10);
+}
+
+/* ═══════════ PREP COUNTDOWN ═══════════ */
+function startPrepCountdown(secs) {
+  clearInterval(prepInterval);
+  let rem = secs;
+  const numEl  = document.getElementById('prep-number');
+  const barFill= document.getElementById('prep-bar-fill');
+  renderPrep();
+  prepInterval = setInterval(() => { rem--; renderPrep(); if (rem<=0){ clearInterval(prepInterval); onPrepEnd(); } }, 1000);
+  function renderPrep() {
+    // Re-trigger pop animation each tick
+    numEl.classList.remove('prep-anim');
+    void numEl.offsetWidth; // reflow
+    numEl.classList.add('prep-anim');
+    numEl.textContent = rem;
+    barFill.style.width = (rem/secs*100)+'%';
+  }
+}
+
+/* ═══════════ PREP END → RECALL ═══════════ */
+function onPrepEnd() {
+  showScreen('screen-recall');
+  renderRecallGrid();
+  renderItemsList();
+  startTimer(25, 'timer-recall', 'timer-fill-recall', onRecallEnd);
+}
+
+/* ═══════════ RECALL ═══════════ */
+function renderRecallGrid() {
+  const g = document.getElementById('grid-recall');
+  g.innerHTML = '';
+  for (let i=0; i<16; i++) {
+    const c = document.createElement('div');
+    c.className = 'matrix-cell target-cell';
+    c.innerHTML = `<span class="cell-num">${i+1}</span>`;
+    c.addEventListener('click', () => onCellClick(i, c));
+    g.appendChild(c);
+  }
+}
+
+function renderItemsList() {
+  const list = document.getElementById('items-list');
+  list.innerHTML = '';
+  chosenItems.forEach((item, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'item-chip';
+    chip.innerHTML = `<span class="chip-icon">${item.icon}</span><span class="chip-name">${item.name}</span>`;
+    chip.addEventListener('click', () => onItemSelect(i, chip));
+    list.appendChild(chip);
+  });
+}
+
+function onItemSelect(idx, chip) {
+  document.querySelectorAll('.item-chip').forEach(c => c.classList.remove('selected'));
+  if (selectedItem && selectedItem.idx === idx) { selectedItem = null; return; }
+  chip.classList.add('selected');
+  selectedItem = { idx, item: chosenItems[idx], chip };
+}
+
+function onCellClick(cellIdx, cellEl) {
+  if (!selectedItem)             { toast('Select an item first.'); return; }
+  if (playerPlacements[cellIdx]) { toast('Cell already occupied.'); return; }
+  playerPlacements[cellIdx] = selectedItem.item;
+  selectedItem.chip.classList.remove('selected');
+  selectedItem.chip.classList.add('placed');
+  selectedItem = null;
+  cellEl.classList.remove('target-cell');
+  cellEl.innerHTML = `<span class="cell-num">${cellIdx+1}</span><span class="cell-icon">${playerPlacements[cellIdx].icon}</span><span class="cell-name">${playerPlacements[cellIdx].name}</span>`;
+  cellEl.classList.add('has-item');
+  if (Object.keys(playerPlacements).length === 8) { clearInterval(timerInterval); setTimeout(onRecallEnd, 400); }
+}
+
+/* ═══════════ RESULT ═══════════ */
+function onRecallEnd() {
+  clearInterval(timerInterval);
+  const score = calcScore();
+  showScreen('screen-result');
+  renderResult(score);
+  saveScore(playerName, playerRoll, score);
+  if (score >= 6) launchConfetti();
+}
+
+function calcScore() {
+  let c = 0;
+  for (const [idx, item] of Object.entries(playerPlacements))
+    if (correctMap[idx] && correctMap[idx].name === item.name) c++;
+  return c;
+}
+
+function renderResult(score) {
+  document.getElementById('result-score').textContent   = score;
+  document.getElementById('result-message').textContent = getMsg(score);
+  document.getElementById('result-player').textContent  = `${playerName} · ${playerRoll}`;
+  const g = document.getElementById('grid-result');
+  g.innerHTML = '';
+  for (let i=0; i<16; i++) {
+    const c = document.createElement('div');
+    c.className = 'matrix-cell';
+    c.innerHTML = `<span class="cell-num">${i+1}</span>`;
+    if (playerPlacements[i]) {
+      const ok = correctMap[i] && correctMap[i].name === playerPlacements[i].name;
+      c.classList.add(ok ? 'correct-place' : 'wrong-place');
+      c.innerHTML += `<span class="cell-icon">${playerPlacements[i].icon}</span><span class="cell-name">${playerPlacements[i].name}</span>`;
+    } else if (correctMap[i]) {
+      c.style.opacity = '0.28';
+      c.innerHTML += `<span class="cell-icon">${correctMap[i].icon}</span><span class="cell-name">${correctMap[i].name}</span>`;
+    }
+    g.appendChild(c);
+  }
+}
+
+/* ═══════════ SAVE ═══════════ */
+async function saveScore(name, roll, score) {
+  const el = document.getElementById('result-save-status');
+  el.textContent = 'Saving your score…';
+  try {
+    const res = await fetch(`${API_BASE}/api/scores`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({name,roll,score}) });
+    el.textContent = res.ok ? '✓ Score saved to the records.' : '⚠ Could not save score.';
+  } catch { el.textContent = '⚠ Backend not reachable. Score not saved.'; }
+}
+
+/* ═══════════ LEADERBOARD ═══════════ */
+async function showLeaderboard() {
+  showScreen('screen-leaderboard');
+  const content = document.getElementById('lb-content');
+  content.innerHTML = '<div style="text-align:center;padding:20px 0;"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  try {
+    const res = await fetch(`${API_BASE}/api/leaderboard`);
+    if (!res.ok) throw new Error('Server error');
+    renderLB(await res.json());
+  } catch(e) {
+    content.innerHTML = `<p style="text-align:center;color:rgba(245,237,216,0.4);font-style:italic;padding:20px;">Could not load leaderboard.<br><small>${e.message}</small></p>`;
+  }
+}
+
+function renderLB(data) {
+  const content = document.getElementById('lb-content');
+  if (!data||!data.length) { content.innerHTML='<p style="text-align:center;color:rgba(245,237,216,0.4);font-style:italic;padding:20px;">No records yet. Be the first!</p>'; return; }
+  const medals=['gold-medal','silver-medal','bronze-medal'], syms=['✦','◈','△'];
+  let html = `<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Roll No.</th><th style="text-align:right">Score</th></tr></thead><tbody>`;
+  data.forEach((r,i) => {
+    html += `<tr><td class="lb-rank ${i<3?medals[i]:''}">${i<3?syms[i]:i+1}</td><td>${esc(r.name)}</td><td style="opacity:0.55">${esc(r.roll)}</td><td class="lb-score-td">${r.score}/8</td></tr>`;
+  });
+  content.innerHTML = html + '</tbody></table>';
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ═══════════ NAV ═══════════ */
+function restartGame() { clearInterval(timerInterval); clearInterval(prepInterval); document.getElementById('input-name').value=playerName; document.getElementById('input-roll').value=playerRoll; showScreen('screen-home'); }
+function goHome() { clearInterval(timerInterval); clearInterval(prepInterval); showScreen('screen-home'); }
+
+/* ═══════════ CONFETTI ═══════════ */
+function launchConfetti() {
+  const c = document.getElementById('confetti-container'); c.innerHTML='';
+  const colors=['#c9a84c','#e8cc7a','#fff8dc','#8b6914','#ffd700','#f5edd8'];
+  for (let i=0; i<70; i++) {
+    const p=document.createElement('div'); p.className='confetti-piece';
+    p.style.cssText=`left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>.5?'50%':'2px'};width:${4+Math.random()*8}px;height:${4+Math.random()*8}px;animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*1.5}s;opacity:${.6+Math.random()*.4};`;
+    c.appendChild(p);
+  }
+  setTimeout(()=>{ c.innerHTML=''; }, 7000);
+}
+
+/* ═══════════ KEYBOARD ═══════════ */
+document.getElementById('input-name').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('input-roll').focus(); });
+document.getElementById('input-roll').addEventListener('keydown', e=>{ if(e.key==='Enter') proceedToRules(); });
+</script>
+</body>
+</html>
