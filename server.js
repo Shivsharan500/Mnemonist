@@ -87,7 +87,7 @@ app.get('/api/leaderboard', async (req, res) => {
 
 /* ── Fallback: serve the game HTML ── */
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'mnemonist.html'));
+  res.sendFile(path.join(__dirname, 'public','mnemonist.html'));
 });
 
 /* ── Start ── */
