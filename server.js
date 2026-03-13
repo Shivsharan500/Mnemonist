@@ -32,12 +32,17 @@ const pool = new Pool({
 async function initDB() {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS mnemonist_scores (
-      id        SERIAL PRIMARY KEY,
-      name      TEXT NOT NULL,
-      roll      TEXT NOT NULL,
-      score     INTEGER NOT NULL CHECK (score >= 0 AND score <= 8),
-      played_at TIMESTAMP DEFAULT NOW()
+      id         SERIAL PRIMARY KEY,
+      name       TEXT NOT NULL,
+      roll       TEXT NOT NULL,
+      score      INTEGER NOT NULL CHECK (score >= 0 AND score <= 10),
+      time_taken INTEGER,
+      played_at  TIMESTAMP DEFAULT NOW()
     )
+  `);
+  // Add time_taken column if it doesn't exist (for existing tables)
+  await pool.query(`
+    ALTER TABLE mnemonist_scores ADD COLUMN IF NOT EXISTS time_taken INTEGER
   `);
   console.log('✓ Database table ready.');
 }
@@ -48,19 +53,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 /* ── POST /api/scores ── Save a new score */
 app.post('/api/scores', async (req, res) => {
-  const { name, roll, score } = req.body;
+  const { name, roll, score, time_taken } = req.body;
 
   if (!name || !roll || score === undefined) {
     return res.status(400).json({ error: 'name, roll, and score are required.' });
   }
-  if (typeof score !== 'number' || score < 0 || score > 8) {
-    return res.status(400).json({ error: 'score must be a number between 0 and 8.' });
+  if (typeof score !== 'number' || score < 0 || score > 10) {
+    return res.status(400).json({ error: 'score must be a number between 0 and 10.' });
   }
 
   try {
     await pool.query(
-      'INSERT INTO mnemonist_scores (name, roll, score) VALUES ($1, $2, $3)',
-      [String(name).trim(), String(roll).trim(), score]
+      'INSERT INTO mnemonist_scores (name, roll, score, time_taken) VALUES ($1, $2, $3, $4)',
+      [String(name).trim(), String(roll).trim(), score, time_taken ?? null]
     );
     res.json({ success: true });
   } catch (err) {
@@ -69,13 +74,13 @@ app.post('/api/scores', async (req, res) => {
   }
 });
 
-/* ── GET /api/leaderboard ── Top 10 by score */
+/* ── GET /api/leaderboard ── Top 10: score DESC, then time_taken ASC on tie */
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const { rows } = await pool.query(`
-      SELECT name, roll, score, played_at
+      SELECT name, roll, score, time_taken, played_at
       FROM mnemonist_scores
-      ORDER BY score DESC, played_at ASC
+      ORDER BY score DESC, time_taken ASC NULLS LAST, played_at ASC
       LIMIT 10
     `);
     res.json(rows);
@@ -87,7 +92,7 @@ app.get('/api/leaderboard', async (req, res) => {
 
 /* ── Fallback: serve the game HTML ── */
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'public','mnemonist.html'));
+  res.sendFile(path.join(__dirname, 'public', 'mnemonist.html'));
 });
 
 /* ── Start ── */

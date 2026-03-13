@@ -382,6 +382,8 @@ let playerName = '', playerRoll = '';
 let chosenItems = [], chosenCells = [], correctMap = {}, playerPlacements = {};
 let selectedItem  = null;  // { idx, item, chip }
 let timerInterval = null, prepInterval = null;
+let recallStartTime = null;  // Date.now() when recall begins
+let timeTaken = 0;           // seconds taken to finish recall
 
 /* ═══════════ HELPERS ═══════════ */
 function shuffle(arr) {
@@ -501,6 +503,7 @@ function onPrepEnd() {
   showScreen('screen-recall');
   renderRecallGrid();
   renderItemsList();
+  recallStartTime = Date.now();
   startTimer(TIME_RECALL, 'timer-recall', 'timer-fill-recall', onRecallEnd);
 }
 
@@ -651,10 +654,11 @@ function updateAllChips() {
 /* ═══════════ RESULT ═══════════ */
 function onRecallEnd() {
   clearInterval(timerInterval);
+  timeTaken = Math.round((Date.now() - recallStartTime) / 1000);
   const score = calcScore();
   showScreen('screen-result');
   renderResult(score);
-  saveScore(playerName, playerRoll, score);
+  saveScore(playerName, playerRoll, score, timeTaken);
   if (score >= 7) launchConfetti();
 }
 
@@ -688,14 +692,14 @@ function renderResult(score) {
 }
 
 /* ═══════════ SAVE ═══════════ */
-async function saveScore(name, roll, score) {
+async function saveScore(name, roll, score, timeTaken) {
   const el = document.getElementById('result-save-status');
   el.textContent = 'Saving your score…';
   try {
     const res = await fetch(`${API_BASE}/api/scores`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({name, roll, score})
+      body: JSON.stringify({name, roll, score, time_taken: timeTaken})
     });
     el.textContent = res.ok ? '✓ Score saved to the records.' : '⚠ Could not save score.';
   } catch { el.textContent = '⚠ Backend not reachable. Score not saved.'; }
@@ -719,9 +723,10 @@ function renderLB(data) {
   const content = document.getElementById('lb-content');
   if (!data || !data.length) { content.innerHTML = '<p style="text-align:center;color:rgba(245,237,216,0.4);font-style:italic;padding:20px;">No records yet. Be the first!</p>'; return; }
   const medals = ['gold-medal','silver-medal','bronze-medal'], syms = ['✦','◈','△'];
-  let html = `<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Roll No.</th><th style="text-align:right">Score</th></tr></thead><tbody>`;
+  let html = `<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Roll No.</th><th style="text-align:right">Score</th><th style="text-align:right">Time</th></tr></thead><tbody>`;
   data.forEach((r, i) => {
-    html += `<tr><td class="lb-rank ${i<3?medals[i]:''}">${i<3?syms[i]:i+1}</td><td>${esc(r.name)}</td><td style="opacity:0.55">${esc(r.roll)}</td><td class="lb-score-td">${r.score}/10</td></tr>`;
+    const timeStr = r.time_taken != null ? r.time_taken + 's' : '—';
+    html += `<tr><td class="lb-rank ${i<3?medals[i]:''}">${i<3?syms[i]:i+1}</td><td>${esc(r.name)}</td><td style="opacity:0.55">${esc(r.roll)}</td><td class="lb-score-td">${r.score}/8</td><td style="text-align:right;opacity:0.6;font-family:'Cinzel',serif;font-size:0.82rem;">${timeStr}</td></tr>`;
   });
   content.innerHTML = html + '</tbody></table>';
 }
