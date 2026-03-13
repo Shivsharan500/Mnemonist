@@ -726,7 +726,7 @@ function renderLB(data) {
   let html = `<table class="lb-table"><thead><tr><th>#</th><th>Name</th><th>Roll No.</th><th style="text-align:right">Score</th><th style="text-align:right">Time</th></tr></thead><tbody>`;
   data.forEach((r, i) => {
     const timeStr = r.time_taken != null ? r.time_taken + 's' : '—';
-    html += `<tr><td class="lb-rank ${i<3?medals[i]:''}">${i<3?syms[i]:i+1}</td><td>${esc(r.name)}</td><td style="opacity:0.55">${esc(r.roll)}</td><td class="lb-score-td">${r.score}/8</td><td style="text-align:right;opacity:0.6;font-family:'Cinzel',serif;font-size:0.82rem;">${timeStr}</td></tr>`;
+    html += `<tr><td class="lb-rank ${i<3?medals[i]:''}">${i<3?syms[i]:i+1}</td><td>${esc(r.name)}</td><td style="opacity:0.55">${esc(r.roll)}</td><td class="lb-score-td">${r.score}/10</td><td style="text-align:right;opacity:0.6;font-family:'Cinzel',serif;font-size:0.82rem;">${timeStr}</td></tr>`;
   });
   content.innerHTML = html + '</tbody></table>';
 }
