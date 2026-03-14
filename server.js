@@ -35,7 +35,7 @@ async function initDB() {
       id         SERIAL PRIMARY KEY,
       name       TEXT NOT NULL,
       roll       TEXT NOT NULL,
-      score      INTEGER NOT NULL CHECK (score >= 0 AND score <= 10),
+      score      INTEGER NOT NULL,
       time_taken INTEGER,
       played_at  TIMESTAMP DEFAULT NOW()
     )
@@ -43,6 +43,10 @@ async function initDB() {
   // Add time_taken column if it doesn't exist (for existing tables)
   await pool.query(`
     ALTER TABLE mnemonist_scores ADD COLUMN IF NOT EXISTS time_taken INTEGER
+  `);
+  // Drop old CHECK constraint if it exists (was limiting score to 8)
+  await pool.query(`
+    ALTER TABLE mnemonist_scores DROP CONSTRAINT IF EXISTS mnemonist_scores_score_check
   `);
   console.log('✓ Database table ready.');
 }
